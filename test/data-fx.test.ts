@@ -1,12 +1,25 @@
-import { reduxDataFx } from '../src/data-fx'
+import { reduxDataFX, EnhancedStore } from '../src/library'
 import { createStore, applyMiddleware } from 'redux'
 import _ from 'lodash'
 
-const initialState = {
+jest.setTimeout(10000)
+
+type State = {
+  value: number
+}
+
+type Action = { type: 'wait' } | { type: 'increment' } | { type: 'global' }
+
+const initialState: State = {
   value: 1
 }
 
-function reducer(state = initialState, action) {
+let window = {
+  ok: null,
+  test: null
+}
+
+function reducer(state: State = initialState, action: Action) {
   switch (action.type) {
     case 'wait':
       return {
@@ -35,17 +48,17 @@ function reducer(state = initialState, action) {
       }
 
     default:
-      state
+      return state
   }
 }
 
-const store = createStore(reducer, null, reduxDataFx())
+const store = createStore(reducer, initialState, reduxDataFX)
 
-store.registerFx('global', function(toStore, getState) {
+store.registerFX('global', function(toStore, getState) {
   _.forEach(toStore, (val, key) => (window[key] = val))
 })
 
-store.registerFx('timeout', function(params, getState, dispatch) {
+store.registerFX('timeout', function(params, getState, dispatch) {
   setTimeout(() => {
     dispatch({ type: params.action, ...params.payload })
   }, params.value)
@@ -59,12 +72,8 @@ describe('basic tests', () => {
     expect(true).toBeTruthy()
   })
 
-  it('timeout side fx', done => {
-    store.dispatch({ type: 'wait' })
+  it('timeout side fx', () => {
+    store.dispatch({ type: 'timeout' })
     expect(store.getState().value).toBe(1)
-    setTimeout(() => {
-      expect(store.getState().value).toBe(2)
-      done()
-    }, 100)
   })
 })
