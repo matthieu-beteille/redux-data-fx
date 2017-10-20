@@ -2,13 +2,18 @@ import { reduxDataFX, EnhancedStore } from '../src/library'
 import { createStore, applyMiddleware } from 'redux'
 import _ from 'lodash'
 
-jest.setTimeout(10000)
+jest.setTimeout(1000)
 
 type State = {
   value: number
 }
 
-type Action = { type: 'wait' } | { type: 'increment' } | { type: 'global' }
+type Action =
+  | { type: 'wait' }
+  | { type: 'increment' }
+  | { type: 'global' }
+  | { type: 'storageSet' }
+  | { type: 'storageRemove' }
 
 const initialState: State = {
   value: 1
@@ -18,6 +23,21 @@ let window = {
   ok: null,
   test: null
 }
+
+function Storage() {
+  this.store = {}
+}
+Storage.prototype.setItem = function(id, item) {
+  this.store[id] = item
+}
+Storage.prototype.getItem = function(id) {
+  return this.store[id]
+}
+Storage.prototype.removeItem = function(id) {
+  delete this.store[id]
+}
+
+let localStorage = new Storage()
 
 function reducer(state: State = initialState, action: Action) {
   switch (action.type) {
@@ -47,6 +67,29 @@ function reducer(state: State = initialState, action: Action) {
         state
       }
 
+    case 'storageSet':
+      return {
+        _fx: {
+          localStorage: {
+            set: {
+              key1: 'value1',
+              key2: 'value2'
+            }
+          }
+        },
+        state
+      }
+
+    case 'storageRemove':
+      return {
+        _fx: {
+          localStorage: {
+            remove: ['key1', 'key2']
+          }
+        },
+        state
+      }
+
     default:
       return state
   }
@@ -64,16 +107,42 @@ store.registerFX('timeout', function(params, getState, dispatch) {
   }, params.value)
 })
 
-describe('basic tests', () => {
-  it('global side fx', () => {
+store.registerFX('localStorage', function(params, getState, dispatch) {
+  if (params.set && _.isObject(params.set)) {
+    _.each(params.set, (value, key) => {
+      localStorage.setItem(key, value)
+    })
+  }
+  if (params.remove && Array.isArray(params.remove)) {
+    params.remove.forEach(key => {
+      localStorage.removeItem(key)
+    })
+  }
+})
+
+describe('Simple FX tests', () => {
+  it('should trigger global fx and create two global variables', () => {
     store.dispatch({ type: 'global' })
     expect(window.test).toBe(1)
     expect(window.ok).toBe('cool')
     expect(true).toBeTruthy()
   })
 
-  it('timeout side fx', () => {
-    store.dispatch({ type: 'timeout' })
-    expect(store.getState().value).toBe(1)
+  // it("should trigger timeout side fx", done => {
+  //   store.dispatch({ type: "timeout" });
+  //   expect(store.getState().value).toBe(1);
+  //   setTimeout(() => {
+  //     expect(store.getState().value).toBe(2);
+  //     done();
+  //   }, 100);
+  // });
+
+  it('should use localStorage side fx', () => {
+    store.dispatch({ type: 'storageSet' })
+    expect(localStorage.getItem('key1')).toBe('value1')
+    expect(localStorage.getItem('key2')).toBe('value2')
+    store.dispatch({ type: 'storageRemove' })
+    expect(localStorage.getItem('key1')).toBe(undefined)
+    expect(localStorage.getItem('key2')).toBe(undefined)
   })
 })
