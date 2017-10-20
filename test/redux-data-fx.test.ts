@@ -1,6 +1,7 @@
 import { reduxDataFX, EnhancedStore } from '../src/redux-data-fx'
-import { createStore, applyMiddleware } from 'redux'
+import { createStore, applyMiddleware, compose } from 'redux'
 import forEach from 'lodash.foreach'
+import reduxLogger from 'redux-logger'
 
 jest.setTimeout(1000)
 
@@ -95,7 +96,9 @@ function reducer(state: State = initialState, action: Action) {
   }
 }
 
-const store = createStore(reducer, initialState, reduxDataFX)
+const enhancer = compose(applyMiddleware(reduxLogger), reduxDataFX)
+
+const store = createStore(reducer, initialState, enhancer)
 
 store.registerFX('global', function(toStore, getState) {
   forEach(toStore, (val, key) => (window[key] = val))
