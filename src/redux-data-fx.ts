@@ -1,5 +1,5 @@
 import 'babel-polyfill'
-import { each, isObject } from 'lodash'
+import { forEach, isObject } from 'lodash'
 import { hasFX } from './helpers'
 import {
   StoreCreator,
@@ -41,7 +41,7 @@ const reduxDataFX = <S>(createStore: StoreEnhancerStoreCreator<S>) => (
 
     if (hasFX(result)) {
       let { _fx, state } = result
-      each(_fx, (params, id) => {
+      forEach(_fx, (params, id) => {
         q.push([id, params])
       })
       return state
