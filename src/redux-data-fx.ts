@@ -40,11 +40,11 @@ const reduxDataFX = <S>(createStore: StoreEnhancerStoreCreator<S>) => (
     const result = reducer(state, action)
 
     if (hasFX(result)) {
-      let { _fx, state } = result
+      let { _fx, newState } = result
       forEach(_fx, (params, id) => {
         q.push([id, params])
       })
-      return state
+      return newState
     } else {
       return result
     }

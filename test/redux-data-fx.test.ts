@@ -43,7 +43,7 @@ function reducer(state: State = initialState, action: Action) {
   switch (action.type) {
     case 'wait':
       return {
-        state,
+        newState: state,
         _fx: {
           timeout: {
             value: 50,
@@ -64,7 +64,7 @@ function reducer(state: State = initialState, action: Action) {
             ok: 'cool'
           }
         },
-        state
+        newState: state
       }
 
     case 'storageSet':
@@ -77,7 +77,7 @@ function reducer(state: State = initialState, action: Action) {
             }
           }
         },
-        state
+        newState: state
       }
 
     case 'storageRemove':
@@ -87,7 +87,7 @@ function reducer(state: State = initialState, action: Action) {
             remove: ['key1', 'key2']
           }
         },
-        state
+        newState: { value: 1000 }
       }
 
     default:
@@ -128,21 +128,13 @@ describe('Simple FX tests', () => {
     expect(true).toBeTruthy()
   })
 
-  // it("should trigger timeout side fx", done => {
-  //   store.dispatch({ type: "timeout" });
-  //   expect(store.getState().value).toBe(1);
-  //   setTimeout(() => {
-  //     expect(store.getState().value).toBe(2);
-  //     done();
-  //   }, 100);
-  // });
-
-  it('should use localStorage side fx', () => {
+  it('should run localStorage side fx, and update the state', () => {
     store.dispatch({ type: 'storageSet' })
     expect(localStorage.getItem('key1')).toBe('value1')
     expect(localStorage.getItem('key2')).toBe('value2')
     store.dispatch({ type: 'storageRemove' })
     expect(localStorage.getItem('key1')).toBe(undefined)
     expect(localStorage.getItem('key2')).toBe(undefined)
+    expect(store.getState().value).toBe(1000)
   })
 })
