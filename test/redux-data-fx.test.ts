@@ -1,4 +1,4 @@
-import { reduxDataFX, EnhancedStore } from '../src/library'
+import { reduxDataFX, EnhancedStore } from '../src/redux-data-fx'
 import { createStore, applyMiddleware } from 'redux'
 import _ from 'lodash'
 
