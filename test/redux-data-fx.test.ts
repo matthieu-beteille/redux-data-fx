@@ -1,6 +1,6 @@
 import { reduxDataFX, EnhancedStore } from '../src/redux-data-fx'
 import { createStore, applyMiddleware } from 'redux'
-import _ from 'lodash'
+import forEach from 'lodash.foreach'
 
 jest.setTimeout(1000)
 
@@ -98,7 +98,7 @@ function reducer(state: State = initialState, action: Action) {
 const store = createStore(reducer, initialState, reduxDataFX)
 
 store.registerFX('global', function(toStore, getState) {
-  _.forEach(toStore, (val, key) => (window[key] = val))
+  forEach(toStore, (val, key) => (window[key] = val))
 })
 
 store.registerFX('timeout', function(params, getState, dispatch) {
@@ -108,8 +108,8 @@ store.registerFX('timeout', function(params, getState, dispatch) {
 })
 
 store.registerFX('localStorage', function(params, getState, dispatch) {
-  if (params.set && _.isObject(params.set)) {
-    _.each(params.set, (value, key) => {
+  if (params.set) {
+    forEach(params.set, (value, key) => {
       localStorage.setItem(key, value)
     })
   }

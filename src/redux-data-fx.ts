@@ -1,5 +1,5 @@
 import 'babel-polyfill'
-import { forEach, isObject } from 'lodash'
+import forEach from 'lodash.foreach'
 import { hasFX } from './helpers'
 import {
   StoreCreator,

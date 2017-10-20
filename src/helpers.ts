@@ -1,5 +1,3 @@
-import { isObject } from 'lodash'
-
 export interface StateWithFx {
   [key: string]: any
   state: any
@@ -7,5 +5,5 @@ export interface StateWithFx {
 }
 
 export function hasFX(s: any): s is StateWithFx {
-  return s && isObject(s._fx) && '_fx' in s && 'state' in s
+  return s && typeof s._fx === 'object' && '_fx' in s && 'state' in s
 }
