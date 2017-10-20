@@ -1,14 +1,16 @@
 # Redux Data FX 
 
-## Declarative Side Effects for Redux.a
+Declarative Side Effects for Redux.
 
 There are many options out there to handle side effects with Redux (redux-coco, redux-blabla, redux-gnagna, redux-hiprx...). I didn't quite find what I wanted so I decided I'd made this small store enhancer..
 
-The idea is very similar to `redux-loop`, mostly inspired by the elm architecture, but I'd say this very implementation's idea comes from what re-frame is doing in cljs with its effectful handlers.
+The idea is very simple: in addition of the new state, your reducers can now return a data structure describing the side effects you want to run. 
 
-(re-frame is an awesome project, you should definitely check its readme/docs if you have time https://github.com/Day8/re-frame/)
+This is very similar to `redux-loop`, mostly inspired by the elm architecture. But I'd say this implementation's idea comes from re-frame in cljs and its effectful handlers.
 
-## How does it work?
+(re-frame is an awesome project, you should definitely check it out https://github.com/Day8/re-frame/)
+
+## Overview
 
 Usual reducer signature:
 
@@ -62,7 +64,7 @@ function reducer(state = initialState, action) {
 }
 ```
 
-The 'fetch-some-data' action is what we can call an effectful action, it sets a flag in the state, and returns a description of the side effects we want to run.
+The 'fetch-some-data' action is what we can call an effectful action, it updates the state and returns a description of the side effects to run as a result.
 
 As you probably have understood already, if we want to run some side effects we return a map with two fields: 
 ```javascript
@@ -108,15 +110,17 @@ As simple as this:
 ```npm install --save redux-data-fx```
 
 ```javascript
-import  reduxDataFX from 'redux-data-fx'
+import { reduxDataFX } from 'redux-data-fx'
 import someMiddleware from 'some-middleware';
 
 const enhancer = compose(
   applyMiddleware(someMiddleware),
-  reduxDataFx
+  reduxDataFX
 );
 
 const store = createStore(reducer, initialState, enhancer);
+
+// const store = createStore(reducer, initialState, reduxDataFx); if no middleware
 
 // then you can register as many FX as you want
 store.registerFX('fetch', (params, getState, dispatch) => {
