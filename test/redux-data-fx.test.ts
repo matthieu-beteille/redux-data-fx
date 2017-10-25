@@ -1,5 +1,5 @@
-import { reduxDataFX, EnhancedStore } from '../src/redux-data-fx'
-import { createStore, applyMiddleware, compose } from 'redux'
+import { reduxDataFX, fx, createStore } from '../src/redux-data-fx'
+import { applyMiddleware, compose } from 'redux'
 import forEach from 'lodash.foreach'
 
 jest.setTimeout(1000)
@@ -8,14 +8,19 @@ type State = {
   value: number
 }
 
+const initialState = {
+  value: 0
+}
+
 type Action =
   | { type: 'wait' }
   | { type: 'increment' }
   | { type: 'global' }
   | { type: 'storageSet' }
   | { type: 'storageRemove' }
+  | { type: 'batchStorage' }
 
-const initialState: State = {
+const State = {
   value: 1
 }
 
@@ -42,60 +47,71 @@ let localStorage = new Storage()
 function reducer(state: State = initialState, action: Action) {
   switch (action.type) {
     case 'wait':
-      return {
-        newState: state,
-        _fx: {
-          timeout: {
-            value: 50,
-            action: 'increment',
-            payload: {}
-          }
+      return fx(state, {
+        timeout: {
+          value: 50,
+          action: 'increment',
+          payload: {}
         }
-      }
+      })
 
     case 'increment':
       return { value: state.value + 1 }
 
     case 'global':
-      return {
-        _fx: {
-          global: {
-            test: 1,
-            ok: 'cool'
-          }
-        },
-        newState: state
-      }
+      return fx(state, {
+        global: {
+          test: 1,
+          ok: 'cool'
+        }
+      })
 
     case 'storageSet':
-      return {
-        _fx: {
-          localStorage: {
-            set: {
-              key1: 'value1',
-              key2: 'value2'
-            }
+      return fx(state, {
+        localStorage: {
+          set: {
+            key1: 'value1',
+            key2: 'value2'
           }
-        },
-        newState: state
-      }
+        }
+      })
 
     case 'storageRemove':
-      return {
-        _fx: {
+      return fx(
+        { value: 1000 },
+        {
           localStorage: {
             remove: ['key1', 'key2']
           }
+        }
+      )
+
+    case 'batchStorage':
+      return fx({ value: 50 }, [
+        {
+          localStorage: {
+            set: {
+              a: 1,
+              b: 2
+            }
+          }
         },
-        newState: { value: 1000 }
-      }
+        {
+          localStorage: {
+            set: {
+              c: 3,
+              d: 4
+            }
+          }
+        }
+      ])
 
     default:
       return state
   }
 }
 
-const store = createStore(reducer, initialState, reduxDataFX)
+const store = createStore(reducer, reduxDataFX)
 
 store.registerFX('global', function(toStore, getState) {
   forEach(toStore, (val, key) => (window[key] = val))
@@ -136,5 +152,14 @@ describe('Simple FX tests', () => {
     expect(localStorage.getItem('key1')).toBe(undefined)
     expect(localStorage.getItem('key2')).toBe(undefined)
     expect(store.getState().value).toBe(1000)
+  })
+
+  it('should run a batch of localStorage side fx', () => {
+    store.dispatch({ type: 'batchStorage' })
+    expect(localStorage.getItem('a')).toBe(1)
+    expect(localStorage.getItem('b')).toBe(2)
+    expect(localStorage.getItem('c')).toBe(3)
+    expect(localStorage.getItem('d')).toBe(4)
+    expect(store.getState().value).toBe(50)
   })
 })
