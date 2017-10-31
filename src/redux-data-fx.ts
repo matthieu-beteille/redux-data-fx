@@ -1,6 +1,7 @@
 import 'babel-polyfill'
 import forEach from 'lodash.foreach'
 import { hasFX, fx, StateWithFx } from './helpers'
+import { combineReducers } from './combine-reducers'
 import {
   StoreEnhancerStoreCreator,
   Store,
@@ -10,28 +11,15 @@ import {
   Dispatch,
   createStore
 } from 'redux'
-
-export interface FXReducer<S, A> {
-  (state: S | undefined, action: A): S | StateWithFx<S>
-}
-
-export interface FXHandler<S> {
-  (params: FXParams, getState: () => S, dispatch: Dispatch<S>): void
-}
-
-export interface FXParams {
-  [key: string]: any
-}
-
-interface RegisteredFXs<S> {
-  [key: string]: FXHandler<S>
-}
-
-type QueuedFX = [string, FXParams]
-
-export interface FXStore<S> extends Store<S> {
-  registerFX(id: string, handler: FXHandler<S>): void
-}
+import {
+  FXReducer,
+  FXHandler,
+  FXParams,
+  RegisteredFXs,
+  QueuedFX,
+  FXStore,
+  StoreCreator
+} from './types'
 
 const reduxDataFX = <S, A extends Action>(
   createStore: StoreEnhancerStoreCreator<S>
@@ -103,18 +91,6 @@ const reduxDataFX = <S, A extends Action>(
   }
 }
 
-export interface StoreCreator {
-  <S, A extends Action>(
-    reducer: FXReducer<S, A>,
-    enhancer?: StoreEnhancer<S>
-  ): FXStore<S>
-  <S, A extends Action>(
-    reducer: FXReducer<S, A>,
-    preloadedState: S,
-    enhancer?: StoreEnhancer<S>
-  ): FXStore<S>
-}
-
 const createStoreFx = createStore as StoreCreator
 
-export { reduxDataFX, fx, createStoreFx as createStore }
+export { reduxDataFX, fx, createStoreFx as createStore, combineReducers }

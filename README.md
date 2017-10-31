@@ -106,7 +106,7 @@ This function will take 3 parameters when called:
 - getState: useful if you need to access your state here
 - dispatch: so you can dispatch new actions from there
 
-## 3 How to use it?
+## 3. How to use it?
 
 As simple as this:
 
@@ -123,7 +123,8 @@ const enhancer = compose(
 
 const store = createStore(reducer, initialState, enhancer);
 
-// const store = createStore(reducer, initialState, reduxDataFx); if no middleware
+// or createStore(reducer, enhancer); if you don't want to provide the initialState here
+// or createStore(reducer, initialState, reduxDataFx); if no middleware
 
 // then you can register as many FX as you want
 store.registerFX('fetch', (params, getState, dispatch) => {
@@ -140,6 +141,21 @@ store.registerFX('dispatchLater', (params, getState, dispatch) => {
 ```
 
 You can import ```createStore``` from 'redux'. But if you are using typescript you should import it from 'redux-data-fx' (it's the same thing except the types will be right).
+
+### Use with ```combineReducers```
+
+If you want this to work with the popular ```combineReducers``` function from redux, you just have to use the one from ```redux-data-fx```. You'll now be able to return effects from the reducers you're combining.
+
+```javascript
+import { reduxDataFX, combineReducers } from 'redux-data-fx'
+
+const reducer = combinerReducers({
+  reducer1: reducer1,
+  ...
+});
+
+const store = createStore(reducer, reduxDataFx);
+```
 
 ## Testing
 

@@ -1,6 +1,4 @@
-export type Effects = { [key: string]: any }
-
-export type BatchEffects = [Effects]
+import { Effects, BatchEffects } from './types'
 
 export interface StateWithFx<S> {
   state: S
