@@ -2,17 +2,15 @@
 
 Declarative Side Effects for Redux.
 
-There are many options out there to handle side effects with Redux (redux-saga, redux-loop...). I didn't quite find what I wanted so I decided I'd made this small store enhancer.
+It helps you keep your business logic and effectful code separate.
 
-The idea is very simple: in addition of the new state, your reducers can now also return a data structure describing some side effects you want to run. (Your reducers remain pure functions.)
+The idea is simple: in addition of your app's new state, your reducers can also return a data structure describing some side effects you want to run. (Your reducers remain pure.)
  
-This is very similar to `redux-loop`, mostly inspired by the elm architecture. But I'd say this very   implementation's idea comes from re-frame in cljs and its effectful handlers.
-
-(re-frame is an awesome project, you should definitely check it out https://github.com/Day8/re-frame/)
+This is very similar to `redux-loop`, mostly inspired by the elm architecture. But this very implementation's idea comes from re-frame in cljs and its effectful handlers. (re-frame is an awesome project, you should definitely check it out https://github.com/Day8/re-frame/)
 
 ## Overview
 
-Usual reducer signature:
+Usual reducer signature is:
 
 ```(Action, State) -> State```
 
@@ -20,11 +18,11 @@ With redux-data-fx, it becomes:
 
 ```(Action, State) -> State | { state: State, effects: Effects }```
 
-Your reducer can either return only a new state as usual (same as first signature), or a combination of a new state and another data structure: the description of some side effects that you want to run.
+Your reducer can either return only a new state, or a combination of a new state and another data structure: the description of some side effects that you want to run.
 
 ## 1. Declaratively describe side effects in your reducers.
 
-One of your reducer could now look like this:
+One of your reducer could look like this:
 
 ```javascript
 import { fx } from 'redux-data-fx';
@@ -66,7 +64,7 @@ function reducer(state = initialState, action) {
 }
 ```
 
-The 'fetch-some-data' action is what we call an effectful action, it updates the state and returns a description of some side effects to run as a result (here an http call).
+The action 'fetch-some-data' is what we call an effectful action, it updates the state and returns a description of some side effects to run (here an http call).
 
 As you probably have understood already, if we want to run some side effects we need to return the result of the `fx` function (```from 'redux-data-fx'```) called with your app new state and a data structure describing the side effects you want to perform.
 
@@ -77,15 +75,13 @@ fx(NewState, Effects)
 
 - *NewState:* the new state of your app (what you usually return from your reducer)
 
-- *Effects:* a map containing the description of all the side effects you want to run. The keys of this map are the id/names of the side effects. The values are any data structures containing the data required to actually perform the side effect. (for instance for an api call, you might want to put the url, the HTTP method, and some parameters in there)
+- *Effects:* a map containing the description of all the side effects you want to run. The keys of this map are the id/names of the side effects. The values are any data structures containing any data required to actually perform the side effect. (for instance for an api call, you might want to provide the url, the HTTP method, and some parameters)
 
 ## 2. Run side effects
 
-In order to actually run these side effects you'll need to register some effects handlers.
+In order to actually run these side effects you'll need to register some effects handlers. This is where the effectful code will be run (at the border of the system).
 
-This is where the effectful code will be run (at the border of the system).
-
-For instance to run our fetch side effects we could register the following handler:
+For instance to run our fetch side effects we would register the following handler:
 
 ```javascript
 store.registerFX('fetch', (params, getState, dispatch) => {
@@ -100,7 +96,7 @@ store.registerFX('fetch', (params, getState, dispatch) => {
 
 The first argument is the handler's id, it needs to be the same as the key used in the Effects map to describe the side effect you want to perform. In this case 'fetch'.
 
-The second argument is the effect handler, the effectful function that will perform this side effect.
+The second argument is the effect handler, the function that will perform this side effect.
 This function will take 3 parameters when called:
 - the description of the effect to run (from the Effects map you returned in the reducer)
 - getState: useful if you need to access your state here
@@ -144,7 +140,7 @@ You can import ```createStore``` from 'redux'. But if you are using typescript y
 
 ### Use with ```combineReducers```
 
-If you want this to work with the popular ```combineReducers``` function from redux, you just have to use the one from ```redux-data-fx```. You'll now be able to return effects from the reducers you're combining.
+If you want this to work with ```combineReducers``` from redux, you just have to use the one from ```redux-data-fx``` instead. You'll now be able to return effects from the reducers you're combining.
 
 ```javascript
 import { reduxDataFX, combineReducers } from 'redux-data-fx'
@@ -159,11 +155,15 @@ const store = createStore(reducer, reduxDataFx);
 
 ## Testing
 
-You can keep testing your reducers the same way you were doing before, except that now you can also make sure that effectful actions return the right effects descriptions. Since these descriptions are just data, it's really easy to verify that they are what you expect them to be.
+You can keep testing your reducers the same way you were doing before, except that now you can also make sure that they return the right effects descriptions (if needed). Since these descriptions are just data, it's really easy to verify that they are what you expect them to be.
 
-Then you can test your effect handlers independantly, to make sure they run the right side effects given the right inputs.
+Then you can test your effect handlers independantly, to make sure they run the  side effects as expected given the right inputs.
 
 ## TODO: Default FX
 
-Make it work with combineReducers.
-Create some default effect handlers like: fetch, localStorage, sessionStorage, dispatchLater, dispatch...
+Create some default effect handlers like: 
+- fetch
+- localStorage
+- sessionStorage
+- dispatchLater
+- dispatch
