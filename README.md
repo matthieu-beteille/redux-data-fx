@@ -20,7 +20,7 @@ With redux-data-fx, it becomes:
 
 Your reducer can either return only a new state, or a combination of a new state and another data structure: the description of some side effects that you want to run.
 
-## 1. Declaratively describe side effects in your reducers.
+### 1. Declaratively describe side effects in your reducers.
 
 One of your reducer could look like this:
 
@@ -77,7 +77,7 @@ fx(NewState, Effects)
 
 - *Effects:* a map containing the description of all the side effects you want to run. The keys of this map are the id/names of the side effects. The values are any data structures containing any data required to actually perform the side effect. (for instance for an api call, you might want to provide the url, the HTTP method, and some parameters)
 
-## 2. Run side effects
+### 2. Run side effects
 
 In order to actually run these side effects you'll need to register some effects handlers. This is where the effectful code will be run (at the border of the system).
 
@@ -102,7 +102,7 @@ This function will take 3 parameters when called:
 - getState: useful if you need to access your state here
 - dispatch: so you can dispatch new actions from there
 
-## 3. How to use it?
+### 3. How to use it?
 
 As simple as this:
 
@@ -153,13 +153,13 @@ const reducer = combinerReducers({
 const store = createStore(reducer, reduxDataFx);
 ```
 
-## Testing
+### Testing
 
 You can keep testing your reducers the same way you were doing before, except that now you can also make sure that they return the right effects descriptions (if needed). Since these descriptions are just data, it's really easy to verify that they are what you expect them to be.
 
 Then you can test your effect handlers independantly, to make sure they run the  side effects as expected given the right inputs.
 
-## TODO: Default FX
+#### TODO: Default FX
 
 Create some default effect handlers like: 
 - fetch
