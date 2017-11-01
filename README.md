@@ -4,9 +4,9 @@ Declarative Side Effects for Redux.
 
 It helps you keep your business logic and effectful code separate.
 
-The idea is simple: in addition of your app's new state, your reducers can also return a data structure describing some side effects you want to run. (Your reducers remain pure.)
+The idea is simple: in addition of your app's new state, your reducers can also return a data structure describing some side effects you want to run. (your reducers remain pure.)
  
-This is very similar to `redux-loop`, mostly inspired by the elm architecture. But this very implementation's idea comes from re-frame in cljs and its effectful handlers. (re-frame is an awesome project, you should definitely check it out https://github.com/Day8/re-frame/)
+This is a little similar to `redux-loop`, mostly inspired by the elm architecture. But this very implementation's idea comes from re-frame in cljs and its effectful handlers. (re-frame is an awesome project, you should definitely check it out https://github.com/Day8/re-frame/)
 
 ## Overview
 
@@ -66,8 +66,7 @@ function reducer(state = initialState, action) {
 
 The action 'fetch-some-data' is what we call an effectful action, it updates the state and returns a description of some side effects to run (here an http call).
 
-As you probably have understood already, if we want to run some side effects we need to return the result of the `fx` function (```from 'redux-data-fx'```) called with your app new state and a data structure describing the side effects you want to perform.
-
+If we want to run some side effects we need to return the result of the `fx` function called with your app new state and a data structure describing the side effects you want to perform.
 
 ```javascript
 fx(NewState, Effects)
@@ -77,11 +76,16 @@ fx(NewState, Effects)
 
 - *Effects:* a map containing the description of all the side effects you want to run. The keys of this map are the id/names of the side effects. The values are any data structures containing any data required to actually perform the side effect. (for instance for an api call, you might want to provide the url, the HTTP method, and some parameters)
 
+*Note:* the fx function just creates an object of the following shape: 
+```{ state: newAppState, effects: someEffectsToRun }```
+You *have to* use the ```fx``` function to create this structure just so ```redux-data-fx``` knows that you want to run some effects.
+Then ```redux-data-fx``` will update the state and run the effects behind the scene.
+
 ### 2. Run side effects
 
-In order to actually run these side effects you'll need to register some effects handlers. This is where the effectful code will be run (at the border of the system).
+In order to actually run these described side effects you'll need to register some effect handlers. This is where the effectful code will be run (at the border of the system).
 
-For instance to run our fetch side effects we would register the following handler:
+For instance to run our fetch side effect we would register the following handler:
 
 ```javascript
 store.registerFX('fetch', (params, getState, dispatch) => {
@@ -155,9 +159,15 @@ const store = createStore(reducer, reduxDataFx);
 
 ### Testing
 
-You can keep testing your reducers the same way you were doing before, except that now you can also make sure that they return the right effects descriptions (if needed). Since these descriptions are just data, it's really easy to verify that they are what you expect them to be.
+You can keep testing your reducers the same way but when they return some effect descriptions you have now the ability to make sure these are right too. 
 
-Then you can test your effect handlers independantly, to make sure they run the  side effects as expected given the right inputs.
+As described before, the function ```fx(newState, effects)``` only creates an object with two fields: 
+- state: the new state of your app
+- effects: your effects
+
+Those are only data, so it's quite easy for you to test both of them when you test your reducers.
+
+Then you can test your effect handlers separately, to verify they run the side effects as expected given the right inputs.
 
 #### TODO: Default FX
 
