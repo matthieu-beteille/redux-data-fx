@@ -22,6 +22,9 @@ type Action =
   | { type: 'testSideFx1'; payload: { [key: string]: any } }
   | { type: 'testSideFx2'; data: { [key: string]: any } }
   | { type: 'batchStorage' }
+  | { type: 'flow1' }
+  | { type: 'flow2' }
+  | { type: 'flow3' }
 
 const State = {
   value: 1
@@ -132,6 +135,29 @@ function reducer(state: State = initialState, action: Action) {
         }
       ])
 
+    case 'flow1':
+      return fx(
+        { value: 2020 },
+        {
+          log: { text: 'step1' },
+          dispatch: { actions: [{ type: 'flow2' }] }
+        }
+      )
+
+    case 'flow2':
+      return fx(
+        { value: 100 },
+        {
+          log: { text: 'step2' },
+          dispatch: {
+            actions: [{ type: 'flow3' }]
+          }
+        }
+      )
+
+    case 'flow3':
+      return fx({ value: 1020 }, { log: { text: 'last' } })
+
     default:
       return state
   }
@@ -160,6 +186,16 @@ store.registerFX('localStorage', function(params, getState, dispatch) {
       localStorage.removeItem(key)
     })
   }
+})
+
+store.registerFX('dispatch', (params, getState, dispatch) => {
+  params.actions.forEach(action => {
+    dispatch(action)
+  })
+})
+
+store.registerFX('log', (params, getState, dispatch) => {
+  console.log('[LOGGING EFFECT]: ', params.text)
 })
 
 const sideFx1 = jest.fn()
@@ -227,5 +263,12 @@ describe('ReduxDataFx', () => {
     const consoleSpy = jest.spyOn(console, 'warn')
     store.dispatch({ type: 'undefinedFx' })
     expect(consoleSpy).toHaveBeenCalled()
+  })
+
+  it('should trigger multiple side effects in a row', () => {
+    const consoleSpy = jest.spyOn(console, 'log')
+    store.dispatch({ type: 'flow1' })
+    expect(store.getState().value).toBe(1020)
+    expect(consoleSpy.mock.calls.length).toBe(3)
   })
 })
