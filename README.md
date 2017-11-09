@@ -101,7 +101,7 @@ store.registerFX('fetch', (params, getState, dispatch) => {
 The first argument is the handler's id, it needs to be the same as the key used in the Effects map to describe the side effect you want to perform. In this case 'fetch'.
 
 The second argument is the effect handler, the function that will perform this side effect.
-This function will take 3 parameters when called:
+This function will be given 3 parameters when called:
 - the description of the effect to run (from the Effects map you returned in the reducer)
 - getState: useful if you need to access your state here
 - dispatch: so you can dispatch new actions from there
