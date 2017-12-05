@@ -49,14 +49,16 @@ function reducer(state = initialState, action) {
     'fetch-some-data':
       return fx(
         { ...state, isFetching: true },
-        {
-          fetch: {
+        [ 
+          { 
+            effect: 'fetch',           
             url: 'http://some-api.com/data/1',
             method: 'GET',
             onSuccess: 'fetch/success',
-            onError: 'fecth/error',
-          },
-        });
+            onError: 'fetch/error'
+          } 
+        ]
+      );
 
     default:
       return state;
@@ -64,7 +66,7 @@ function reducer(state = initialState, action) {
 }
 ```
 
-The action 'fetch-some-data' is what we call an effectful action, it updates the state and returns a description of some side effects to run (here an http call).
+The actions 'fetch-some-data' is what we call an effectful action, it updates the state and returns a description of some side effects to run (here an http call).
 
 If we want to run some side effects we need to return the result of the `fx` function called with your app new state and a data structure describing the side effects you want to perform.
 
@@ -74,7 +76,8 @@ fx(NewState, Effects)
 
 - *NewState:* the new state of your app (what you usually return from your reducer)
 
-- *Effects:* a map containing the description of all the side effects you want to run. The keys of this map are the id/names of the side effects. The values are any data structures containing any data required to actually perform the side effect. (for instance for an api call, you might want to provide the url, the HTTP method, and some parameters)
+- *Effects:* an array containing the description of every side effect you want to run. Each side effect should be described with a map containing at least an 'effect' key, being the id of the effect you want to perform. The data required to actually perform the side effect can be passed through any other keys in the map. (for instance for an api call, you might want to provide the url, the HTTP method, and some parameters). That should remind you of the structure of a redux action: ```{ type: 'myAction1', ...params }```, except that we use the 'effect' key to identify the side effect to perform: ```{ effect: 'myEffect1', ...params }```
+
 
 *Note:* the fx function just creates an object of the following shape: 
 ```{ state: newAppState, effects: someEffectsToRun }```
@@ -98,11 +101,11 @@ store.registerFX('fetch', (params, getState, dispatch) => {
 });
 ```
 
-The first argument is the handler's id, it needs to be the same as the key used in the Effects map to describe the side effect you want to perform. In this case 'fetch'.
+The first argument is the handler's id, it needs to be the same as the effect key you'll return in your reducer(s) to trigger this same effect. In this case 'fetch'.
 
-The second argument is the effect handler, the function that will perform this side effect.
+The second argument is the effect handler, the function that will perform the side effect.
 This function will be given 3 parameters when called:
-- the description of the effect to run (from the Effects map you returned in the reducer)
+- the params provided in the effect map (from your reducer)
 - getState: useful if you need to access your state here
 - dispatch: so you can dispatch new actions from there
 
@@ -157,6 +160,10 @@ const reducer = combinerReducers({
 const store = createStore(reducer, reduxDataFx);
 ```
 
+### ```store.replaceReducer```
+
+If you want to replace some reducers (to lazyload some of them for instance), you should use the new function ```store.replaceEffectfulReducer``` from your store.
+
 ### Testing
 
 You can keep testing your reducers the same way but when they return some effect descriptions you have now the ability to make sure these are right too. 
@@ -168,6 +175,7 @@ As described before, the function ```fx(newState, effects)``` only creates an ob
 Those are only data, so it's quite easy for you to test both of them when you test your reducers.
 
 Then you can test your effect handlers separately, to verify they run the side effects as expected given the right inputs.
+
 
 #### TODO: Default FX
 

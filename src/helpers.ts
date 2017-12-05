@@ -1,8 +1,8 @@
-import { Effects, BatchEffects } from './types'
+import { Effects } from './types'
 
 export interface StateWithFx<S> {
   state: S
-  effects: Effects | BatchEffects
+  effects: Effects
 }
 
 export class StateWithFx<S> {

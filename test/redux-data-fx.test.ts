@@ -53,110 +53,94 @@ let localStorage = new Storage()
 function reducer(state: State = initialState, action: Action) {
   switch (action.type) {
     case 'wait':
-      return fx(state, {
-        timeout: {
+      return fx(state, [
+        {
+          effect: 'timeout',
           value: 50,
           action: 'increment',
           payload: {}
         }
-      })
+      ])
 
     case 'increment':
       return { value: state.value + 1 }
 
     case 'global':
-      return fx(state, {
-        global: {
+      return fx(state, [
+        {
+          effect: 'global',
           test: 1,
           ok: 'cool'
         }
-      })
+      ])
 
     case 'storageSet':
-      return fx(state, {
-        localStorage: {
+      return fx(state, [
+        {
+          effect: 'localStorage',
           set: {
             key1: 'value1',
             key2: 'value2'
           }
         }
-      })
+      ])
 
     case 'storageRemove':
-      return fx(
-        { value: 1000 },
+      return fx({ value: 1000 }, [
         {
-          localStorage: {
-            remove: ['key1', 'key2']
-          }
+          effect: 'localStorage',
+          remove: ['key1', 'key2']
         }
-      )
+      ])
 
     case 'testSideFx1':
-      return fx(state, {
-        sideFx1: action.payload
-      })
+      return fx(state, [{ effect: 'sideFx1', ...action.payload }])
 
     case 'testSideFx2':
-      return fx(state, {
-        sideFx2: action.data
-      })
+      return fx(state, [{ effect: 'sideFx2', ...action.data }])
 
     case 'undefinedFx':
-      return fx(state, {
-        undefinedFx: { a: 1 }
-      })
+      return fx(state, [{ effect: 'undefinedFx', a: 1 }])
 
     case 'batchStorage':
       return fx({ value: 50 }, [
         {
-          localStorage: {
-            set: {
-              a: 1,
-              b: 2
-            }
+          effect: 'localStorage',
+          set: {
+            a: 1,
+            b: 2
           }
         },
         {
-          localStorage: {
-            set: {
-              c: 3,
-              d: 4
-            }
+          effect: 'localStorage',
+          set: {
+            c: 3,
+            d: 4
           }
         },
         {
-          localStorage: {
-            set: {
-              e: 5,
-              f: 6
-            }
+          effect: 'localStorage',
+          set: {
+            e: 5,
+            f: 6
           }
         }
       ])
 
     case 'flow1':
-      return fx(
-        { value: 2020 },
-        {
-          log: { text: 'step1' },
-          dispatch: { actions: [{ type: 'flow2' }] }
-        }
-      )
+      return fx({ value: 2020 }, [
+        { effect: 'log', text: 'step1' },
+        { effect: 'dispatch', actions: [{ type: 'flow2' }] }
+      ])
 
     case 'flow2':
-      return fx(
-        { value: 100 },
-        {
-          log: { text: 'step2' },
-          dispatch: {
-            actions: [{ type: 'flow3' }]
-          }
-        }
-      )
+      return fx({ value: 100 }, [
+        { effect: 'log', text: 'step2' },
+        { effect: 'dispatch', actions: [{ type: 'flow3' }] }
+      ])
 
     case 'flow3':
-      return fx({ value: 1020 }, { log: { text: 'last' } })
+      return fx({ value: 1020 }, [{ effect: 'log', text: 'last' }])
 
     default:
       return state

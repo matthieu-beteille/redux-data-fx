@@ -30,16 +30,16 @@ const effectfulReducer = combineReducers({
   reducer1: (state: number = 0, action: Action) => {
     switch (action.type) {
       case 'testFx1':
-        return fx(state + 1, { sideFx1: action.payload })
+        return fx(state + 1, [{ effect: 'sideFx1', ...action.payload }])
       case 'testFx2':
-        return fx(state + 1, { sideFx2: action.payload })
+        return fx(state + 1, [{ effect: 'sideFx2', ...action.payload }])
       case 'batchedFx':
         return fx(state, [
-          { sideFx1: {} },
-          { sideFx1: {} },
-          { sideFx2: {} },
-          { sideFx2: {} },
-          { sideFx2: {} }
+          { effect: 'sideFx1' },
+          { effect: 'sideFx1' },
+          { effect: 'sideFx2' },
+          { effect: 'sideFx2' },
+          { effect: 'sideFx2' }
         ])
       default:
         return state
