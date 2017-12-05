@@ -1,24 +1,23 @@
-import { Action, StoreEnhancer, Dispatch, Store } from 'redux'
+import { Action, StoreEnhancer, Dispatch, Store, Reducer } from 'redux'
 import { StateWithFx } from './helpers'
 
-export type Effects = { [key: string]: any }
-
-export type BatchEffects = Effects[]
+export type Effect = { effect: string; [key: string]: any }
+export type Effects = Effect[]
 
 export interface StoreCreator {
   <S, A extends Action>(
-    reducer: FXReducer<S, A>,
+    reducer: FXReducer<S>,
     enhancer?: StoreEnhancer<S>
   ): FXStore<S>
   <S, A extends Action>(
-    reducer: FXReducer<S, A>,
+    reducer: FXReducer<S>,
     preloadedState: S,
     enhancer?: StoreEnhancer<S>
   ): FXStore<S>
 }
 
-export interface FXReducer<S, A> {
-  (state: S | undefined, action: A): S | StateWithFx<S>
+export interface FXReducer<S> {
+  (state: S | undefined, action: Action): S | StateWithFx<S>
 }
 
 export interface FXHandler<S> {
@@ -37,4 +36,5 @@ export type QueuedFX = [string, FXParams]
 
 export interface FXStore<S> extends Store<S> {
   registerFX(id: string, handler: FXHandler<S>): void
+  replaceEffectfulReducer(reducer: FXReducer<S>): void
 }

@@ -18,32 +18,26 @@ import {
   RegisteredFXs,
   QueuedFX,
   FXStore,
-  StoreCreator
+  StoreCreator,
+  Effects
 } from './types'
 
 const reduxDataFX = <S, A extends Action>(
   createStore: StoreEnhancerStoreCreator<S>
-) => (reducer: FXReducer<S, A>, initialState: S): FXStore<S> => {
-  let q: QueuedFX[] = []
+) => (reducer: FXReducer<S>, initialState: S): FXStore<S> => {
+  let q: Effects = []
   let fx: RegisteredFXs<S> = {}
 
-  const liftReducer = (reducer: FXReducer<S, A>) => (state: S, action: A) => {
+  const liftReducer = (reducer: FXReducer<S>): Reducer<S> => (
+    state: S,
+    action: Action
+  ) => {
     const result = reducer(state, action)
 
     if (hasFX(result)) {
       let { effects, state } = result
 
-      if (Array.isArray(effects)) {
-        effects.forEach(effects => {
-          forEach(effects, (params, id) => {
-            q.push([id, params])
-          })
-        })
-      } else {
-        forEach(effects, (params, id) => {
-          q.push([id, params])
-        })
-      }
+      q = q.concat(effects)
 
       return state
     } else {
@@ -61,14 +55,15 @@ const reduxDataFX = <S, A extends Action>(
 
       if (!current) return res // --'
 
-      let [id, params] = current
+      let { effect, ...params } = current
 
-      if (fx[id] !== undefined) {
-        fx[id](params, store.getState, store.dispatch)
+      if (fx[effect] !== undefined) {
+        // !!! performing side effects !!!
+        fx[effect](params, store.getState, store.dispatch)
       } else {
         console.warn(
           'Trying to use fx: ' +
-            id +
+            effect +
             '. None has been registered. Doing nothing.'
         )
       }
@@ -77,13 +72,13 @@ const reduxDataFX = <S, A extends Action>(
     return res
   }
 
-  const replaceReducer = (reducer: Reducer<S>) => {
+  const replaceEffectfulReducer = (reducer: FXReducer<S>) => {
     return store.replaceReducer(liftReducer(reducer))
   }
 
   return {
     ...store,
-    replaceReducer,
+    replaceEffectfulReducer,
     dispatch,
     registerFX(id: string, handler: FXHandler<S>) {
       fx[id] = handler
