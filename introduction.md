@@ -1,2 +1,0 @@
-Redux Data Fe e . 
-
