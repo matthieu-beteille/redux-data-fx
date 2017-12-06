@@ -6,7 +6,7 @@ It helps you keep your business logic and effectful code separate.
 
 The idea is simple: in addition of your app's new state, your reducers can also return a data structure describing some side effects you want to run. (your reducers remain pure.)
  
-This is a little similar to `redux-loop`, mostly inspired by the elm architecture. But this very implementation's idea comes from re-frame in cljs and its effectful handlers. (re-frame is an awesome project, you should definitely check it out https://github.com/Day8/re-frame/)
+This is a little similar to `redux-loop`, inspired by the elm architecture. But this very implementation's idea comes from re-frame in cljs and its effectful handlers. (re-frame is an awesome project, you should definitely check it out https://github.com/Day8/re-frame/)
 
 ## Overview
 
@@ -66,18 +66,17 @@ function reducer(state = initialState, action) {
 }
 ```
 
-The actions 'fetch-some-data' is what we call an effectful action, it updates the state and returns a description of some side effects to run (here an http call).
+The action 'fetch-some-data' is what we call an effectful action, it updates the state and returns a description of some side effects to run (here an http call).
 
-If we want to run some side effects we need to return the result of the `fx` function called with your app new state and a data structure describing the side effects you want to perform.
+If we want to run some side effects we need to return the result of the `fx` function called with our app new state and a data structure describing the side effects we want to perform.
 
 ```javascript
 fx(NewState, Effects)
 ```
 
-- *NewState:* the new state of your app (what you usually return from your reducer)
+- *NewState:* the new state of our app (what you usually return from our reducer)
 
-- *Effects:* an array containing the description of every side effect you want to run. Each side effect should be described with a map containing at least an 'effect' key, being the id of the effect you want to perform. The data required to actually perform the side effect can be passed through any other keys in the map. (for instance for an api call, you might want to provide the url, the HTTP method, and some parameters). That should remind you of the structure of a redux action: ```{ type: 'myAction1', ...params }```, except that we use the 'effect' key to identify the side effect to perform: ```{ effect: 'myEffect1', ...params }```
-
+- *Effects:* an array containing the descriptions of the side effects you want to run. Each side effect should be described by a map containing at least an 'effect' key, being the id of the effect you want to perform. The data required to actually perform the side effect can be passed through any other keys in the map. (for instance for an api call, you might want to provide the url, the HTTP method, and some parameters). That should remind you of the structure of a redux action: ```{ type: 'myAction1', ...params }```, except that the 'effect' key is used to identify the effect to perform: ```{ effect: 'myEffect1', ...params }```. 
 
 *Note:* the fx function just creates an object of the following shape: 
 ```{ state: newAppState, effects: someEffectsToRun }```
@@ -162,7 +161,7 @@ const store = createStore(reducer, reduxDataFx);
 
 ### ```store.replaceReducer```
 
-If you want to replace some reducers (to lazyload some of them for instance), you should use the new function ```store.replaceEffectfulReducer``` from your store.
+If you want to replace some reducers (for lazyloading), you should use the new function ```store.replaceEffectfulReducer``` from your store.
 
 ### Testing
 
@@ -172,10 +171,9 @@ As described before, the function ```fx(newState, effects)``` only creates an ob
 - state: the new state of your app
 - effects: your effects
 
-Those are only data, so it's quite easy for you to test both of them when you test your reducers.
+Those are only data, so it's quite easy for you to test both of them.
 
 Then you can test your effect handlers separately, to verify they run the side effects as expected given the right inputs.
-
 
 #### TODO: Default FX
 
