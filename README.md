@@ -4,11 +4,27 @@ Declarative Side Effects for Redux.
 
 It helps you keep your business logic and effectful code separate.
 
-The idea is simple: in addition of your app's new state, your reducers can also return a data structure describing some side effects you want to run. (your reducers remain pure.)
+The idea is simple: in addition of your app's new state, your reducers can also return a data structure describing some side effects you want to run.
  
-This is a little similar to `redux-loop`, inspired by the elm architecture. But this very implementation's idea comes from re-frame in cljs and its effectful handlers. (re-frame is an awesome project, you should definitely check it out https://github.com/Day8/re-frame/)
+This takes inspiration from the elm architecture but this very implementation's idea comes from [re-frame](https://github.com/Day8/re-frame) in cljs and its effectful handlers. ([re-frame](https://github.com/Day8/re-frame) is an awesome project, you should definitely check it out). 
 
 ## Overview
+
+<br />
+
+![Redux Data FX Flow](flow.png)
+
+<br/>
+
+The same way an action represents an intent to update your app's state, an effect description is a declarative intent to perform a side effect.
+The actual side effects are performed at the border of the system by effect handlers. 
+
+Effect handlers are going to perform the "effectful" code interacting with the world (http calls, ...), using the browser's APIs (setTimeout, local storage, etc...), and they can feed data back in the redux loop by dispatching actions.
+This way your reducers remain pure functions and it's easy to test that your effect description is correct since they are pure data. (see testing section)
+
+There is a lot of cool tools that can be built around this idea. We can keep track of every effect description to get a clear idea of what has happened at the border of our system (log them, save them, re-perform them, etc...). 
+
+## How does that that work?
 
 Usual reducer signature is:
 
