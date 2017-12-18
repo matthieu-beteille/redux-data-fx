@@ -19,7 +19,7 @@ const classicReducer = combineReducers({
     action.type === 'push' ? [...state, action.value] : state
 })
 
-const classicStore = createStore(classicReducer, reduxDataFX)
+const classicStore = createStore(classicReducer, reduxDataFX())
 
 const effectfulReducer = combineReducers({
   counter(state: number = 0, action: Action) {
@@ -47,7 +47,7 @@ const effectfulReducer = combineReducers({
   }
 })
 
-const effectfulStore = createStore(effectfulReducer, reduxDataFX)
+const effectfulStore = createStore(effectfulReducer, reduxDataFX())
 
 const sideFx1 = jest.fn()
 const sideFx2 = jest.fn()

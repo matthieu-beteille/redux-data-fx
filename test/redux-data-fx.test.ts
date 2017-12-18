@@ -147,7 +147,7 @@ function reducer(state: State = initialState, action: Action) {
   }
 }
 
-const store = createStore(reducer, reduxDataFX)
+const store = createStore(reducer, reduxDataFX())
 
 store.registerFX('global', function(toStore, getState) {
   forEach(toStore, (val, key) => (window[key] = val))

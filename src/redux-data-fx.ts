@@ -2,6 +2,7 @@ import 'babel-polyfill'
 import forEach from 'lodash.foreach'
 import { hasFX, fx, StateWithFx } from './helpers'
 import { combineReducers } from './combine-reducers'
+import { instrument } from './devtools'
 import {
   StoreEnhancerStoreCreator,
   Store,
@@ -22,66 +23,77 @@ import {
   Effects
 } from './types'
 
-const reduxDataFX = <S, A extends Action>(
-  createStore: StoreEnhancerStoreCreator<S>
-) => (reducer: FXReducer<S>, initialState: S): FXStore<S> => {
-  let q: Effects = []
-  let fx: RegisteredFXs<S> = {}
+export interface Options {
+  devtools?: boolean
+}
 
-  const liftReducer = (reducer: FXReducer<S>): Reducer<S> => (
-    state: S,
-    action: Action
-  ) => {
-    const result = reducer(state, action)
+const reduxDataFX = ({ devtools }: Options = {}) => {
+  return <S, A extends Action>(createStore: StoreEnhancerStoreCreator<S>) => (
+    reducer: FXReducer<S>,
+    initialState: S
+  ): FXStore<S> => {
+    let q: Effects = []
+    let fx: RegisteredFXs<S> = {}
 
-    if (hasFX(result)) {
-      let { effects, state } = result
+    const liftReducer = (reducer: FXReducer<S>): Reducer<S> => (
+      state: S,
+      action: Action
+    ) => {
+      const result = reducer(state, action)
 
-      q = q.concat(effects)
+      if (hasFX(result)) {
+        let { effects, state } = result
 
-      return state
-    } else {
-      return result
-    }
-  }
+        q = q.concat(effects)
 
-  const store = createStore(liftReducer(reducer), initialState)
-
-  const dispatch = <A extends Action>(action: A): A => {
-    let res = store.dispatch(action)
-
-    while (q.length > 0) {
-      let current = q.shift()
-
-      if (!current) return res // --'
-
-      let { effect, ...params } = current
-
-      if (fx[effect] !== undefined) {
-        // !!! performing side effects !!!
-        fx[effect](params, store.getState, store.dispatch)
+        return state
       } else {
-        console.warn(
-          'Trying to use fx: ' +
-            effect +
-            '. None has been registered. Doing nothing.'
-        )
+        return result
       }
     }
 
-    return res
-  }
+    const store = createStore(liftReducer(reducer), initialState)
 
-  const replaceEffectfulReducer = (reducer: FXReducer<S>) => {
-    return store.replaceReducer(liftReducer(reducer))
-  }
+    const dispatch = <A extends Action>(action: A): A => {
+      let res = store.dispatch(action)
 
-  return {
-    ...store,
-    replaceEffectfulReducer,
-    dispatch,
-    registerFX(id: string, handler: FXHandler<S>) {
-      fx[id] = handler
+      while (q.length > 0) {
+        let current = q.shift()
+
+        if (!current) return res // --'
+
+        let { effect, ...params } = current
+
+        if (fx[effect] !== undefined) {
+          // !!! performing side effects !!!
+          fx[effect](params, store.getState, store.dispatch)
+        } else {
+          console.warn(
+            'Trying to use fx: ' +
+              effect +
+              '. None has been registered. Doing nothing.'
+          )
+        }
+      }
+
+      return res
+    }
+
+    const replaceEffectfulReducer = (reducer: FXReducer<S>) => {
+      return store.replaceReducer(liftReducer(reducer))
+    }
+
+    if (devtools) {
+      instrument(fx, dispatch, store.getState)
+    }
+
+    return {
+      ...store,
+      replaceEffectfulReducer,
+      dispatch,
+      registerFX(id: string, handler: FXHandler<S>) {
+        fx[id] = handler
+      }
     }
   }
 }

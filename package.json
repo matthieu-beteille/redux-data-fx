@@ -111,6 +111,7 @@
     "@types/lodash.foreach": "^4.5.3",
     "@types/lodash.mapvalues": "^4.6.3",
     "babel-polyfill": "^6.26.0",
+    "jsdom": "^11.5.1",
     "lodash.foreach": "^4.5.0",
     "lodash.mapvalues": "^4.6.0"
   }
